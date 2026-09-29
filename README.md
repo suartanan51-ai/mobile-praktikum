@@ -15,3 +15,12 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## Identitas Mahasiswa
+
+- NIM: 2415051119
+- Nama: I Nengah Suartana
+
+## Progress Praktikum
+
+Project Flutter Learning Dashboard telah menyelesaikan tahap UI, assets, JSON statik, FutureBuilder, dan debugging.
