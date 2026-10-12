@@ -598,6 +598,7 @@ class HomePage extends StatelessWidget {
 }
 
 
+
 class CoursesPage extends StatefulWidget {
   final Map<String, dynamic> student;
   final List<dynamic> courses;
@@ -628,22 +629,20 @@ class _CoursesPageState extends State<CoursesPage> {
   void showCourseInfo(Map<String, dynamic> course) {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(course['title'] as String),
-          content: Text(
-            'Kode: ${course['code']}\n'
-            'SKS: ${course['credits']}\n'
-            'Status: ${course['status']}',
+      builder: (context) => AlertDialog(
+        title: Text(course['title'] as String),
+        content: Text(
+          'Kode: ${course['code']}\n'
+          'SKS: ${course['credits']}\n'
+          'Status: ${course['status']}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Tutup'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -664,9 +663,7 @@ class _CoursesPageState extends State<CoursesPage> {
     if (!mounted) return;
 
     if (result == true) {
-      setState(() {
-        favoriteCourses.add(course['code'] as String);
-      });
+      toggleFavorite(course['code'] as String);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -687,12 +684,8 @@ class _CoursesPageState extends State<CoursesPage> {
       onFavorite: () {
         toggleFavorite(course['code'] as String);
       },
-      onLongPress: () {
-        showCourseInfo(course);
-      },
-      onTap: () {
-        openCourse(course);
-      },
+      onLongPress: () => showCourseInfo(course),
+      onTap: () => openCourse(course),
     );
   }
 
@@ -719,6 +712,11 @@ class _CoursesPageState extends State<CoursesPage> {
                 nim: widget.student['nim'] as String,
               ),
               const SizedBox(height: 16),
+              ValueNotifierDemo(
+                name: widget.student['name'] as String,
+                nim: widget.student['nim'] as String,
+              ),
+              const SizedBox(height: 16),
               FavoriteSummary(
                 favorites: favoriteCourses,
               ),
@@ -734,7 +732,8 @@ class _CoursesPageState extends State<CoursesPage> {
               if (isCompact)
                 ListView.separated(
                   shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                  physics:
+                      const NeverScrollableScrollPhysics(),
                   itemCount: widget.courses.length,
                   separatorBuilder: (context, index) =>
                       const SizedBox(height: 12),
@@ -742,14 +741,14 @@ class _CoursesPageState extends State<CoursesPage> {
                     final course =
                         widget.courses[index]
                             as Map<String, dynamic>;
-
                     return buildCourseCard(course);
                   },
                 )
               else
                 GridView.builder(
                   shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                  physics:
+                      const NeverScrollableScrollPhysics(),
                   itemCount: widget.courses.length,
                   gridDelegate:
                       SliverGridDelegateWithFixedCrossAxisCount(
@@ -765,7 +764,6 @@ class _CoursesPageState extends State<CoursesPage> {
                     final course =
                         widget.courses[index]
                             as Map<String, dynamic>;
-
                     return buildCourseCard(course);
                   },
                 ),
@@ -773,6 +771,88 @@ class _CoursesPageState extends State<CoursesPage> {
           ),
         );
       },
+    );
+  }
+}
+
+class ValueNotifierDemo extends StatefulWidget {
+  final String name;
+  final String nim;
+
+  const ValueNotifierDemo({
+    super.key,
+    required this.name,
+    required this.nim,
+  });
+
+  @override
+  State<ValueNotifierDemo> createState() =>
+      _ValueNotifierDemoState();
+}
+
+class _ValueNotifierDemoState
+    extends State<ValueNotifierDemo> {
+  final ValueNotifier<int> counter = ValueNotifier<int>(0);
+
+  @override
+  void dispose() {
+    counter.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Eksperimen ValueNotifier',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text('Nama: ${widget.name}'),
+            Text('NIM: ${widget.nim}'),
+            const SizedBox(height: 12),
+            ValueListenableBuilder<int>(
+              valueListenable: counter,
+              builder: (context, value, child) {
+                return Text(
+                  'Counter: $value',
+                  style: const TextStyle(fontSize: 18),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                ElevatedButton(
+                  onPressed: () => counter.value++,
+                  child: const Text('Tambah'),
+                ),
+                OutlinedButton(
+                  onPressed: () {
+                    if (counter.value > 0) {
+                      counter.value--;
+                    }
+                  },
+                  child: const Text('Kurangi'),
+                ),
+                TextButton(
+                  onPressed: () => counter.value = 0,
+                  child: const Text('Reset'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
