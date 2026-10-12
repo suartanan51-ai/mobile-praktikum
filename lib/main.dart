@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:provider/provider.dart';
+
 import 'course_state.dart';
 
 Future<Map<String, dynamic>> loadStudentData() async {
@@ -13,9 +15,13 @@ Future<Map<String, dynamic>> loadStudentData() async {
 }
 
 void main() {
-  runApp(const CourseExplorerApp());
+  runApp(
+    ChangeNotifierProvider<CourseState>(
+      create: (_) => CourseState(),
+      child: const CourseExplorerApp(),
+    ),
+  );
 }
-
 class CourseExplorerApp extends StatelessWidget {
   const CourseExplorerApp({super.key});
 
