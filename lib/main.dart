@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'models/course.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:provider/provider.dart';
@@ -640,6 +641,7 @@ class _CoursesPageState extends State<CoursesPage> {
       },
     );
   }
+ 
 
   Future<void> openCourse(Map<String, dynamic> course) async {
     final result = await Navigator.push<bool>(
@@ -672,85 +674,255 @@ class _CoursesPageState extends State<CoursesPage> {
       );
     }
   }
+  
+@override
+Widget build(BuildContext context) {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final isCompact = constraints.maxWidth < 600;
+
+      final crossAxisCount = constraints.maxWidth >= 840
+          ? 3
+          : constraints.maxWidth >= 600
+              ? 2
+              : 1;
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ProfileHeader(
+              name: widget.student['name'] as String,
+              nim: widget.student['nim'] as String,
+            ),
+
+            const SizedBox(height: 12),
+
+            // Counter: Tambah, Kurangi, dan Reset
+            ValueNotifierDemo(
+              name: widget.student['name'] as String,
+              nim: widget.student['nim'] as String,
+            ),
+
+            const SizedBox(height: 16),
+
+            // Contoh penggunaan model Course
+            CourseModelDemo(
+              courses: widget.courses,
+            ),
+
+            const SizedBox(height: 16),
+
+            const Text(
+              'Daftar Course',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            const FavoriteCount(),
+
+            const SizedBox(height: 12),
+
+            if (isCompact)
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: widget.courses.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final course =
+                      widget.courses[index] as Map<String, dynamic>;
+
+                  return CourseCard(
+                    course: course,
+                    onLongPress: () => showCourseInfo(course),
+                    onTap: () => openCourse(course),
+                  );
+                },
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: widget.courses.length,
+                gridDelegate:
+                    SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio:
+                      constraints.maxWidth >= 840 ? 1.35 : 1.5,
+                ),
+                itemBuilder: (context, index) {
+                  final course =
+                      widget.courses[index] as Map<String, dynamic>;
+
+                  return CourseCard(
+                    course: course,
+                    onLongPress: () => showCourseInfo(course),
+                    onTap: () => openCourse(course),
+                  );
+                },
+              ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+}
+class ValueNotifierDemo extends StatefulWidget {
+  final String name;
+  final String nim;
+
+  const ValueNotifierDemo({
+    super.key,
+    required this.name,
+    required this.nim,
+  });
+
+  @override
+  State<ValueNotifierDemo> createState() =>
+      _ValueNotifierDemoState();
+}
+
+class _ValueNotifierDemoState
+    extends State<ValueNotifierDemo> {
+  final ValueNotifier<int> counter = ValueNotifier<int>(0);
+
+  @override
+  void dispose() {
+    counter.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 600;
-
-        final crossAxisCount = constraints.maxWidth >= 840
-            ? 3
-            : constraints.maxWidth >= 600
-                ? 2
-                : 1;
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ProfileHeader(
-                name: widget.student['name'] as String,
-                nim: widget.student['nim'] as String,
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Eksperimen ValueNotifier',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Daftar Course',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const FavoriteCount(),
-              const SizedBox(height: 12),
-              if (isCompact)
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: widget.courses.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final course =
-                        widget.courses[index] as Map<String, dynamic>;
+            ),
+            const SizedBox(height: 8),
+            Text('Nama: ${widget.name}'),
+            Text('NIM: ${widget.nim}'),
+            const SizedBox(height: 12),
 
-                    return CourseCard(
-                      course: course,
-                      onLongPress: () => showCourseInfo(course),
-                      onTap: () => openCourse(course),
-                    );
-                  },
-                )
-              else
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: widget.courses.length,
-                  gridDelegate:
-                      SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio:
-                        constraints.maxWidth >= 840 ? 1.35 : 1.5,
+            ValueListenableBuilder<int>(
+              valueListenable: counter,
+              builder: (context, value, child) {
+                return Text(
+                  'Counter: $value',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
-                  itemBuilder: (context, index) {
-                    final course =
-                        widget.courses[index] as Map<String, dynamic>;
+                );
+              },
+            ),
 
-                    return CourseCard(
-                      course: course,
-                      onLongPress: () => showCourseInfo(course),
-                      onTap: () => openCourse(course),
-                    );
+            const SizedBox(height: 8),
+
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    counter.value++;
                   },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Tambah'),
                 ),
-            ],
-          ),
-        );
-      },
+                OutlinedButton.icon(
+                  onPressed: () {
+                    if (counter.value > 0) {
+                      counter.value--;
+                    }
+                  },
+                  icon: const Icon(Icons.remove),
+                  label: const Text('Kurangi'),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    counter.value = 0;
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reset'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CourseModelDemo extends StatelessWidget {
+  final List<dynamic> courses;
+
+  const CourseModelDemo({
+    super.key,
+    required this.courses,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (courses.isEmpty) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('Data course belum tersedia'),
+        ),
+      );
+    }
+
+    final course = Course.fromJson(
+      Map<String, dynamic>.from(
+        courses.first as Map,
+      ),
+    );
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Contoh Model Course',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Divider(),
+            const Text('Nama: I Nengah Suartana'),
+            const Text('NIM: 2415051119'),
+            const SizedBox(height: 8),
+            Text('Kode: ${course.code}'),
+            Text('Mata Kuliah: ${course.title}'),
+            Text('SKS: ${course.credits}'),
+            Text('Status: ${course.status}'),
+          ],
+        ),
+      ),
     );
   }
 }
