@@ -11,15 +11,13 @@ class CourseService {
       'assets/data/student_data.json',
     );
 
-    final data =
-        jsonDecode(jsonString) as Map<String, dynamic>;
-
+    final data = jsonDecode(jsonString) as Map<String, dynamic>;
     final list = data['courses'] as List<dynamic>;
 
     return list
         .map(
-          (e) => Course.fromJson(
-            Map<String, dynamic>.from(e as Map),
+          (item) => Course.fromJson(
+            Map<String, dynamic>.from(item as Map),
           ),
         )
         .toList();

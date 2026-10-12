@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'course_state.dart';
 import 'models/course.dart';
+import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
 import 'services/course_service.dart';
 
@@ -31,14 +32,21 @@ Future<Map<String, dynamic>> loadStudentData() async {
 
   return jsonDecode(jsonString) as Map<String, dynamic>;
 }
-
-
 void main() {
   runApp(
-    ChangeNotifierProvider<CourseState>(
-      create: (_) => CourseState(
-        CourseRepository(CourseService()),
-      ),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<CourseState>(
+          create: (_) => CourseState(
+            CourseRepository(CourseService()),
+          ),
+        ),
+        ChangeNotifierProvider<CourseProvider>(
+          create: (_) => CourseProvider(
+            CourseRepository(CourseService()),
+          ),
+        ),
+      ],
       child: const CourseExplorerApp(),
     ),
   );
@@ -1982,6 +1990,107 @@ class DebugDetailPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+
+class CourseProviderView extends StatefulWidget {
+  const CourseProviderView({super.key});
+
+  @override
+  State<CourseProviderView> createState() =>
+      _CourseProviderViewState();
+}
+
+class _CourseProviderViewState extends State<CourseProviderView> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      context.read<CourseProvider>().loadCourses();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<CourseProvider>(
+      builder: (context, provider, child) {
+        // Kondisi loading
+        if (provider.isLoading) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        // Kondisi error
+        if (provider.error != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 40,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Gagal memuat course:\n${provider.error}',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: provider.loadCourses,
+                    child: const Text('Coba Lagi'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Kondisi data kosong
+        if (provider.courses.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Text('Belum ada data course.'),
+            ),
+          );
+        }
+
+        // Kondisi berhasil
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: provider.courses.length,
+          separatorBuilder: (_, _) {
+            return const Divider(height: 1);
+          },
+          itemBuilder: (context, index) {
+            final course = provider.courses[index];
+
+            return ListTile(
+              leading: const CircleAvatar(
+                child: Icon(Icons.book_outlined),
+              ),
+              title: Text(course.title),
+              subtitle: Text(
+                '${course.code} • ${course.credits} SKS',
+              ),
+              trailing: Text(course.status),
+            );
+          },
+        );
+      },
     );
   }
 }
