@@ -608,8 +608,7 @@ class CoursesPage extends StatefulWidget {
   });
 
   @override
-  State<CoursesPage> createState() =>
-      _CoursesPageState();
+  State<CoursesPage> createState() => _CoursesPageState();
 }
 
 class _CoursesPageState extends State<CoursesPage> {
@@ -676,8 +675,7 @@ class _CoursesPageState extends State<CoursesPage> {
         );
       });
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             '${course['title']} dipilih sebagai favorit.',
@@ -708,12 +706,17 @@ class _CoursesPageState extends State<CoursesPage> {
                 CrossAxisAlignment.start,
             children: [
               ProfileHeader(
-                name: widget.student['name']
-                    as String,
-                nim: widget.student['nim']
-                    as String,
+                name: widget.student['name'] as String,
+                nim: widget.student['nim'] as String,
               ),
               const SizedBox(height: 16),
+
+              FavoriteSummary(
+                favorites: favoriteCourses,
+              ),
+
+              const SizedBox(height: 16),
+
               const Text(
                 'Daftar Course',
                 style: TextStyle(
@@ -722,6 +725,7 @@ class _CoursesPageState extends State<CoursesPage> {
                 ),
               ),
               const SizedBox(height: 12),
+
               if (isCompact)
                 ListView.separated(
                   shrinkWrap: true,
@@ -731,9 +735,7 @@ class _CoursesPageState extends State<CoursesPage> {
                       widget.courses.length,
                   separatorBuilder:
                       (context, index) =>
-                          const SizedBox(
-                    height: 12,
-                  ),
+                          const SizedBox(height: 12),
                   itemBuilder:
                       (context, index) {
                     final course =
@@ -774,8 +776,7 @@ class _CoursesPageState extends State<CoursesPage> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                     childAspectRatio:
-                        constraints.maxWidth >=
-                                840
+                        constraints.maxWidth >= 840
                             ? 1.35
                             : 1.5,
                   ),
@@ -856,13 +857,9 @@ class CourseCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    IconButton(
-                      onPressed: onFavorite,
-                      icon: Icon(
-                        isFavorite
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                      ),
+                    CourseFavoriteButton(
+                      isFavorite: isFavorite,
+                      onFavoriteChanged: onFavorite,
                     ),
                   ],
                 ),
@@ -888,7 +885,63 @@ class CourseCard extends StatelessWidget {
   }
 }
 
-class CourseDetailPage extends StatelessWidget {
+class FavoriteSummary extends StatelessWidget {
+  final Set<String> favorites;
+
+  const FavoriteSummary({
+    super.key,
+    required this.favorites,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const Icon(Icons.favorite),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Total favorit: ${favorites.length}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CourseFavoriteButton extends StatelessWidget {
+  final bool isFavorite;
+  final VoidCallback onFavoriteChanged;
+
+  const CourseFavoriteButton({
+    super.key,
+    required this.isFavorite,
+    required this.onFavoriteChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onFavoriteChanged,
+      icon: Icon(
+        isFavorite
+            ? Icons.favorite
+            : Icons.favorite_border,
+      ),
+    );
+  }
+}
+
+class CourseDetailPage extends StatefulWidget {
   final Map<String, dynamic> course;
   final String name;
   final String nim;
@@ -901,6 +954,13 @@ class CourseDetailPage extends StatelessWidget {
   });
 
   @override
+  State<CourseDetailPage> createState() => _CourseDetailPageState();
+}
+
+class _CourseDetailPageState extends State<CourseDetailPage> {
+  bool showDetail = true;
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -909,33 +969,50 @@ class CourseDetailPage extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      course['title'] as String,
+                      widget.course['title'] as String,
                       style: const TextStyle(
                         fontSize: 24,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      'Kode: ${course['code']}',
-                    ),
-                    Text(
-                      'SKS: ${course['credits']}',
-                    ),
-                    Text(
-                      'Status: ${course['status']}',
+                    if (showDetail) ...[
+                      Text(
+                        'Kode: ${widget.course['code']}',
+                      ),
+                      Text(
+                        'SKS: ${widget.course['credits']}',
+                      ),
+                      Text(
+                        'Status: ${widget.course['status']}',
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          showDetail = !showDetail;
+                        });
+                      },
+                      icon: Icon(
+                        showDetail
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      label: Text(
+                        showDetail
+                            ? 'Sembunyikan Detail'
+                            : 'Tampilkan Detail',
+                      ),
                     ),
                   ],
                 ),
@@ -946,20 +1023,18 @@ class CourseDetailPage extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
                       'Data Mahasiswa',
                       style: TextStyle(
                         fontSize: 18,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('Nama: $name'),
-                    Text('NIM: $nim'),
+                    Text('Nama: ${widget.name}'),
+                    Text('NIM: ${widget.nim}'),
                   ],
                 ),
               ),
@@ -988,7 +1063,6 @@ class CourseDetailPage extends StatelessWidget {
     );
   }
 }
-
 class ProfilePage extends StatelessWidget {
   final Map<String, dynamic> student;
 
