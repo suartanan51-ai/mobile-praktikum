@@ -1,11 +1,28 @@
 import 'dart:convert';
 
-import 'models/course.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:provider/provider.dart';
 
 import 'course_state.dart';
+import 'models/course.dart';
+import 'repositories/course_repository.dart';
+import 'services/course_service.dart';
+
+Future<void> testCourseService() async {
+  try {
+    final service = CourseService();
+    final courses = await service.loadCourses();
+
+    debugPrint('Jumlah course: ${courses.length}');
+
+    for (final course in courses) {
+      debugPrint('${course.code} - ${course.title}');
+    }
+  } catch (e) {
+    debugPrint('Gagal memuat course: $e');
+  }
+}
 
 Future<Map<String, dynamic>> loadStudentData() async {
   final jsonString = await rootBundle.loadString(
@@ -15,14 +32,18 @@ Future<Map<String, dynamic>> loadStudentData() async {
   return jsonDecode(jsonString) as Map<String, dynamic>;
 }
 
+
 void main() {
   runApp(
     ChangeNotifierProvider<CourseState>(
-      create: (_) => CourseState(),
+      create: (_) => CourseState(
+        CourseRepository(CourseService()),
+      ),
       child: const CourseExplorerApp(),
     ),
   );
 }
+
 class CourseExplorerApp extends StatelessWidget {
   const CourseExplorerApp({super.key});
 
@@ -52,6 +73,16 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int selectedIndex = 0;
   bool isSubmitting = false;
+
+   @override
+ void initState() {
+   super.initState();
+
+   WidgetsBinding.instance.addPostFrameCallback((_) {
+     if (!mounted) return;
+     context.read<CourseState>().loadCourses();
+   });
+ }
 
   final nameController = TextEditingController();
   final nimController = TextEditingController();
