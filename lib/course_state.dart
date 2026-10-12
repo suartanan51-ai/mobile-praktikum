@@ -30,18 +30,22 @@ class CourseState extends ChangeNotifier {
     }
   }
 
-  bool isFavorite(String id) {
-    return favorites.contains(id);
+  bool isFavorite(String code) {
+    return favorites.contains(code);
   }
 
-  void toggleFavorite(String id) {
-    if (favorites.contains(id)) {
-      favorites.remove(id);
-    } else {
-      favorites.add(id);
+  void toggleFavorite(String code) {
+    if (!favorites.add(code)) {
+      favorites.remove(code);
     }
 
     notifyListeners();
+  }
+
+  List<Course> get favoriteCourses {
+    return courses
+        .where((course) => favorites.contains(course.code))
+        .toList();
   }
 
   int get totalFavorites => favorites.length;

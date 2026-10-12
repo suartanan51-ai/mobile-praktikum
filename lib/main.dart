@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -1994,7 +1995,6 @@ class DebugDetailPage extends StatelessWidget {
   }
 }
 
-
 class CourseProviderView extends StatefulWidget {
   const CourseProviderView({super.key});
 
@@ -2019,7 +2019,6 @@ class _CourseProviderViewState extends State<CourseProviderView> {
   Widget build(BuildContext context) {
     return Consumer<CourseProvider>(
       builder: (context, provider, child) {
-        // Kondisi loading
         if (provider.isLoading) {
           return const Center(
             child: Padding(
@@ -2029,7 +2028,6 @@ class _CourseProviderViewState extends State<CourseProviderView> {
           );
         }
 
-        // Kondisi error
         if (provider.error != null) {
           return Center(
             child: Padding(
@@ -2037,10 +2035,7 @@ class _CourseProviderViewState extends State<CourseProviderView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 40,
-                  ),
+                  const Icon(Icons.error_outline, size: 40),
                   const SizedBox(height: 8),
                   Text(
                     'Gagal memuat course:\n${provider.error}',
@@ -2057,7 +2052,6 @@ class _CourseProviderViewState extends State<CourseProviderView> {
           );
         }
 
-        // Kondisi data kosong
         if (provider.courses.isEmpty) {
           return const Center(
             child: Padding(
@@ -2067,14 +2061,12 @@ class _CourseProviderViewState extends State<CourseProviderView> {
           );
         }
 
-        // Kondisi berhasil
         return ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: provider.courses.length,
-          separatorBuilder: (_, _) {
-            return const Divider(height: 1);
-          },
+          separatorBuilder: (_, _)  =>
+              const Divider(height: 1),
           itemBuilder: (context, index) {
             final course = provider.courses[index];
 
