@@ -604,8 +604,6 @@ class HomePage extends StatelessWidget {
   }
 }
 
-
-
 class CoursesPage extends StatefulWidget {
   final Map<String, dynamic> student;
   final List<dynamic> courses;
@@ -621,41 +619,29 @@ class CoursesPage extends StatefulWidget {
 }
 
 class _CoursesPageState extends State<CoursesPage> {
-  final Set<String> favoriteCourses = {};
-
-  void toggleFavorite(String code) {
-    setState(() {
-      if (favoriteCourses.contains(code)) {
-        favoriteCourses.remove(code);
-      } else {
-        favoriteCourses.add(code);
-      }
-    });
-  }
-
   void showCourseInfo(Map<String, dynamic> course) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(course['title'] as String),
-        content: Text(
-          'Kode: ${course['code']}\n'
-          'SKS: ${course['credits']}\n'
-          'Status: ${course['status']}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Tutup'),
+      builder: (context) {
+        return AlertDialog(
+          title: Text(course['title'] as String),
+          content: Text(
+            'Kode: ${course['code']}\n'
+            'SKS: ${course['credits']}\n'
+            'Status: ${course['status']}',
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Future<void> openCourse(
-    Map<String, dynamic> course,
-  ) async {
+  Future<void> openCourse(Map<String, dynamic> course) async {
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
@@ -670,7 +656,12 @@ class _CoursesPageState extends State<CoursesPage> {
     if (!mounted) return;
 
     if (result == true) {
-      toggleFavorite(course['code'] as String);
+      final courseState = context.read<CourseState>();
+      final code = course['code'] as String;
+
+      if (!courseState.isFavorite(code)) {
+        courseState.toggleFavorite(code);
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -682,32 +673,17 @@ class _CoursesPageState extends State<CoursesPage> {
     }
   }
 
-  Widget buildCourseCard(Map<String, dynamic> course) {
-    return CourseCard(
-      course: course,
-      isFavorite: favoriteCourses.contains(
-        course['code'] as String,
-      ),
-      onFavorite: () {
-        toggleFavorite(course['code'] as String);
-      },
-      onLongPress: () => showCourseInfo(course),
-      onTap: () => openCourse(course),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 600;
 
-        final crossAxisCount =
-            constraints.maxWidth >= 840
-                ? 3
-                : constraints.maxWidth >= 600
-                    ? 2
-                    : 1;
+        final crossAxisCount = constraints.maxWidth >= 840
+            ? 3
+            : constraints.maxWidth >= 600
+                ? 2
+                : 1;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -719,15 +695,6 @@ class _CoursesPageState extends State<CoursesPage> {
                 nim: widget.student['nim'] as String,
               ),
               const SizedBox(height: 16),
-              ValueNotifierDemo(
-                name: widget.student['name'] as String,
-                nim: widget.student['nim'] as String,
-              ),
-              const SizedBox(height: 16),
-              FavoriteSummary(
-                favorites: favoriteCourses,
-              ),
-              const SizedBox(height: 16),
               const Text(
                 'Daftar Course',
                 style: TextStyle(
@@ -735,27 +702,31 @@ class _CoursesPageState extends State<CoursesPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 8),
+              const FavoriteCount(),
               const SizedBox(height: 12),
               if (isCompact)
                 ListView.separated(
                   shrinkWrap: true,
-                  physics:
-                      const NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: widget.courses.length,
                   separatorBuilder: (context, index) =>
                       const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final course =
-                        widget.courses[index]
-                            as Map<String, dynamic>;
-                    return buildCourseCard(course);
+                        widget.courses[index] as Map<String, dynamic>;
+
+                    return CourseCard(
+                      course: course,
+                      onLongPress: () => showCourseInfo(course),
+                      onTap: () => openCourse(course),
+                    );
                   },
                 )
               else
                 GridView.builder(
                   shrinkWrap: true,
-                  physics:
-                      const NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: widget.courses.length,
                   gridDelegate:
                       SliverGridDelegateWithFixedCrossAxisCount(
@@ -763,15 +734,17 @@ class _CoursesPageState extends State<CoursesPage> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                     childAspectRatio:
-                        constraints.maxWidth >= 840
-                            ? 1.35
-                            : 1.5,
+                        constraints.maxWidth >= 840 ? 1.35 : 1.5,
                   ),
                   itemBuilder: (context, index) {
                     final course =
-                        widget.courses[index]
-                            as Map<String, dynamic>;
-                    return buildCourseCard(course);
+                        widget.courses[index] as Map<String, dynamic>;
+
+                    return CourseCard(
+                      course: course,
+                      onLongPress: () => showCourseInfo(course),
+                      onTap: () => openCourse(course),
+                    );
                   },
                 ),
             ],
@@ -782,108 +755,18 @@ class _CoursesPageState extends State<CoursesPage> {
   }
 }
 
-class ValueNotifierDemo extends StatefulWidget {
-  final String name;
-  final String nim;
-
-  const ValueNotifierDemo({
-    super.key,
-    required this.name,
-    required this.nim,
-  });
-
-  @override
-  State<ValueNotifierDemo> createState() =>
-      _ValueNotifierDemoState();
-}
-
-class _ValueNotifierDemoState
-    extends State<ValueNotifierDemo> {
-  final ValueNotifier<int> counter = ValueNotifier<int>(0);
-
-  @override
-  void dispose() {
-    counter.dispose();
-    super.dispose();
-  }
+class FavoriteCount extends StatelessWidget {
+  const FavoriteCount({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Eksperimen ValueNotifier',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text('Nama: ${widget.name}'),
-            Text('NIM: ${widget.nim}'),
-            const SizedBox(height: 12),
-            ValueListenableBuilder<int>(
-              valueListenable: counter,
-              builder: (context, value, child) {
-                return Text(
-                  'Counter: $value',
-                  style: const TextStyle(fontSize: 18),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                ElevatedButton(
-                  onPressed: () => counter.value++,
-                  child: const Text('Tambah'),
-                ),
-                OutlinedButton(
-                  onPressed: () {
-                    if (counter.value > 0) {
-                      counter.value--;
-                    }
-                  },
-                  child: const Text('Kurangi'),
-                ),
-                TextButton(
-                  onPressed: () => counter.value = 0,
-                  child: const Text('Reset'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+    final courseState = context.watch<CourseState>();
 
-class FavoriteSummary extends StatelessWidget {
-  final Set<String> favorites;
-
-  const FavoriteSummary({
-    super.key,
-    required this.favorites,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: const Icon(
-          Icons.favorite,
-          color: Colors.red,
-        ),
-        title: const Text('Mata Kuliah Favorit'),
-        subtitle: Text(
-          'Total favorit: ${favorites.length}',
-        ),
+    return Text(
+      'Total Favorit: ${courseState.totalFavorites}',
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
@@ -891,22 +774,20 @@ class FavoriteSummary extends StatelessWidget {
 
 class CourseCard extends StatelessWidget {
   final Map<String, dynamic> course;
-  final bool isFavorite;
-  final VoidCallback onFavorite;
   final VoidCallback onLongPress;
   final VoidCallback onTap;
 
   const CourseCard({
     super.key,
     required this.course,
-    required this.isFavorite,
-    required this.onFavorite,
     required this.onLongPress,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final code = course['code'] as String;
+
     return GestureDetector(
       onLongPress: onLongPress,
       child: Card(
@@ -929,13 +810,28 @@ class CourseCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    IconButton(
-                      onPressed: onFavorite,
-                      icon: Icon(
-                        isFavorite
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                      ),
+                    Consumer<CourseState>(
+                      builder: (context, courseState, child) {
+                        final isFavorite =
+                            courseState.isFavorite(code);
+
+                        return IconButton(
+                          tooltip: isFavorite
+                              ? 'Hapus dari favorit'
+                              : 'Tambahkan ke favorit',
+                          onPressed: () {
+                            context
+                                .read<CourseState>()
+                                .toggleFavorite(code);
+                          },
+                          icon: Icon(
+                            isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : null,
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -954,7 +850,6 @@ class CourseCard extends StatelessWidget {
     );
   }
 }
-
 
 class CourseDetailPage extends StatefulWidget {
   final Map<String, dynamic> course;
