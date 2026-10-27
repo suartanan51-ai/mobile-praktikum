@@ -3,8 +3,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/course.dart';
+import 'course_data_source.dart';
 
-class CourseApiService {
+class CourseApiService implements CourseDataSource {
   CourseApiService(this.baseUrl);
 
   final String baseUrl;
@@ -16,6 +17,7 @@ class CourseApiService {
 
   Uri _uri(String path) => Uri.parse('$baseUrl$path');
 
+  @override
   Future<List<Course>> getCourses() async {
     final response = await http.get(_uri('/courses'));
 
@@ -42,6 +44,7 @@ class CourseApiService {
     }).toList();
   }
 
+  @override
   Future<Course> createCourse(Course course) async {
     final response = await http.post(
       _uri('/courses'),
@@ -61,7 +64,8 @@ class CourseApiService {
       );
     }
 
-    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    final json =
+        jsonDecode(response.body) as Map<String, dynamic>;
 
     return Course(
       id: (json['id'] as num?)?.toInt(),
@@ -72,6 +76,7 @@ class CourseApiService {
     );
   }
 
+  @override
   Future<void> updateCourse(int id, Course course) async {
     final response = await http.put(
       _uri('/courses/$id'),
@@ -92,7 +97,10 @@ class CourseApiService {
     }
   }
 
-  Future<void> patchCourse(int id, Map<String, dynamic> changes) async {
+  Future<void> patchCourse(
+    int id,
+    Map<String, dynamic> changes,
+  ) async {
     final response = await http.patch(
       _uri('/courses/$id'),
       headers: _headers,
@@ -106,18 +114,19 @@ class CourseApiService {
       );
     }
   }
-  
-Future<void> deleteCourse(int id) async {
-  final response = await http.delete(
-    Uri.parse('$baseUrl/courses/$id'),
-  );
 
-  if (response.statusCode < 200 || response.statusCode >= 300) {
-    throw Exception(
-      'Gagal menghapus Course: '
-      '${response.statusCode} ${response.body}',
+  @override
+  Future<void> deleteCourse(int id) async {
+    final response = await http.delete(
+      _uri('/courses/$id'),
     );
-  }
-}
 
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300) {
+      throw Exception(
+        'Gagal menghapus Course: '
+        '${response.statusCode} ${response.body}',
+      );
+    }
+  }
 }
