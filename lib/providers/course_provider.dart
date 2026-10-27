@@ -14,15 +14,19 @@ class CourseProvider extends ChangeNotifier {
   String? error;
 
   Future<void> loadCourses() async {
+    // State loading
     isLoading = true;
     error = null;
     notifyListeners();
 
     try {
+      // Mengambil data course dari repository
       courses = await repository.getCourses();
     } catch (e) {
+      // State error
       error = e.toString();
     } finally {
+      // Mengakhiri loading
       isLoading = false;
       notifyListeners();
     }

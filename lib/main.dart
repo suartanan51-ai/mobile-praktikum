@@ -1,4 +1,5 @@
 
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'models/course.dart';
 import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
 import 'services/course_api_service.dart';
+
 
 Future<void> testCourseService() async {
   try {
@@ -32,6 +34,7 @@ Future<Map<String, dynamic>> loadStudentData() async {
 
   return jsonDecode(jsonString) as Map<String, dynamic>;
 }
+
 void main() {
   runApp(
     MultiProvider(
@@ -52,13 +55,14 @@ void main() {
                 'https://jsonplaceholder.typicode.com',
               ),
             ),
-          ),
+          )..loadCourses(),
         ),
       ],
       child: const CourseExplorerApp(),
     ),
   );
 }
+
 
 class CourseExplorerApp extends StatelessWidget {
   const CourseExplorerApp({super.key});
