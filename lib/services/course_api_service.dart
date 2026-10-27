@@ -1,8 +1,6 @@
 
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import '../models/course.dart';
 
 class CourseApiService {
@@ -70,5 +68,29 @@ class CourseApiService {
       credits: json['credits'] as int? ?? course.credits,
       status: json['status'] as String? ?? course.status,
     );
+  }
+
+  // HTTP PUT: Memperbarui course.
+  Future<void> updateCourse(int id, Course course) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/posts/$id'),
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+        'id': id,
+        'code': course.code,
+        'title': course.title,
+        'credits': course.credits,
+        'status': course.status,
+      }),
+    );
+
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300) {
+      throw Exception(
+        'Gagal memperbarui course: HTTP ${response.statusCode}',
+      );
+    }
   }
 }

@@ -6,7 +6,12 @@ import 'models/course.dart';
 import 'providers/course_provider.dart';
 
 class AddCoursePage extends StatefulWidget {
-  const AddCoursePage({super.key});
+  final Course? course;
+
+  const AddCoursePage({
+    super.key,
+    this.course,
+  });
 
   @override
   State<AddCoursePage> createState() => _AddCoursePageState();
@@ -20,6 +25,22 @@ class _AddCoursePageState extends State<AddCoursePage> {
 
   String _status = 'planned';
 
+  bool get _isEditing => widget.course != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final course = widget.course;
+
+    if (course != null) {
+      _codeController.text = course.code;
+      _titleController.text = course.title;
+      _creditsController.text = course.credits.toString();
+      _status = course.status;
+    }
+  }
+
   @override
   void dispose() {
     _codeController.dispose();
@@ -31,23 +52,38 @@ class _AddCoursePageState extends State<AddCoursePage> {
   Future<void> _saveCourse() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final provider = context.read<CourseProvider>();
+
     final course = Course(
+      id: widget.course?.id,
       code: _codeController.text.trim(),
       title: _titleController.text.trim(),
       credits: int.parse(_creditsController.text.trim()),
       status: _status,
     );
 
-    final provider = context.read<CourseProvider>();
-
     try {
-      await provider.createCourse(course);
+      if (_isEditing) {
+        final id = widget.course!.id;
+
+        if (id == null) {
+          throw Exception('ID course tidak ditemukan.');
+        }
+
+        await provider.updateCourse(id, course);
+      } else {
+        await provider.createCourse(course);
+      }
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Course berhasil dikirim'),
+        SnackBar(
+          content: Text(
+            _isEditing
+                ? 'Permintaan update course berhasil'
+                : 'Course berhasil dikirim',
+          ),
         ),
       );
 
@@ -71,7 +107,7 @@ class _AddCoursePageState extends State<AddCoursePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tambah Course'),
+        title: Text(_isEditing ? 'Edit Course' : 'Tambah Course'),
       ),
       body: Form(
         key: _formKey,
@@ -80,6 +116,7 @@ class _AddCoursePageState extends State<AddCoursePage> {
           children: [
             TextFormField(
               controller: _codeController,
+              readOnly: _isEditing,
               decoration: const InputDecoration(
                 labelText: 'Code',
                 border: OutlineInputBorder(),
@@ -169,7 +206,9 @@ class _AddCoursePageState extends State<AddCoursePage> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text('Simpan Course'),
+                  : Text(
+                      _isEditing ? 'Simpan Perubahan' : 'Simpan Course',
+                    ),
             ),
           ],
         ),

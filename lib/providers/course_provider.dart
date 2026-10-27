@@ -14,7 +14,7 @@ class CourseProvider extends ChangeNotifier {
   bool isSaving = false;
   String? error;
 
-  // Mengambil daftar course.
+  // HTTP GET: Mengambil daftar course.
   Future<void> loadCourses() async {
     isLoading = true;
     error = null;
@@ -30,7 +30,7 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // Membuat course baru melalui HTTP POST.
+  // HTTP POST: Membuat course baru.
   Future<Course> createCourse(Course course) async {
     if (isSaving) {
       throw Exception('Course sedang disimpan.');
@@ -43,10 +43,33 @@ class CourseProvider extends ChangeNotifier {
     try {
       final newCourse = await repository.createCourse(course);
 
-      // Muat ulang daftar course setelah POST berhasil.
       await loadCourses();
 
       return newCourse;
+    } catch (e) {
+      error = e.toString();
+      rethrow;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  // HTTP PUT: Memperbarui course.
+  Future<void> updateCourse(int id, Course course) async {
+    if (isSaving) {
+      throw Exception('Course sedang disimpan.');
+    }
+
+    isSaving = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      await repository.updateCourse(id, course);
+
+      // Muat ulang daftar course setelah PUT berhasil.
+      await loadCourses();
     } catch (e) {
       error = e.toString();
       rethrow;

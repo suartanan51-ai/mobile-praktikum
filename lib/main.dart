@@ -1963,6 +1963,7 @@ class DebugDetailPage extends StatelessWidget {
 }
 
  
+
 class CourseProviderView extends StatefulWidget {
   const CourseProviderView({super.key});
 
@@ -1983,6 +1984,20 @@ class _CourseProviderViewState extends State<CourseProviderView> {
     });
   }
 
+  Future<void> _editCourse(Course course) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddCoursePage(course: course),
+      ),
+    );
+
+    if (!mounted) return;
+
+    // Muat ulang daftar setelah halaman edit ditutup.
+    context.read<CourseProvider>().loadCourses();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<CourseProvider>(
@@ -1998,8 +2013,7 @@ class _CourseProviderViewState extends State<CourseProviderView> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const AddCoursePage(),
+                        builder: (context) => const AddCoursePage(),
                       ),
                     );
                   },
@@ -2066,7 +2080,19 @@ class _CourseProviderViewState extends State<CourseProviderView> {
                     subtitle: Text(
                       '${course.code} • ${course.credits} SKS',
                     ),
-                    trailing: Text(course.status),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(course.status),
+                        IconButton(
+                          tooltip: 'Edit Course',
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: provider.isSaving
+                              ? null
+                              : () => _editCourse(course),
+                        ),
+                      ],
+                    ),
                   );
                 },
               );
