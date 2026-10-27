@@ -14,7 +14,28 @@ class CourseProvider extends ChangeNotifier {
   bool isSaving = false;
   String? error;
 
-  // HTTP GET: Mengambil daftar course.
+  
+ Future<void> deleteCourse(int id) async {
+   if (isSaving) return;
+
+   isSaving = true;
+   error = null;
+   notifyListeners();
+
+   try {
+     await repository.deleteCourse(id);
+
+     courses.removeWhere((course) => course.id == id);
+     notifyListeners();
+   } catch (e) {
+     error = e.toString();
+     rethrow;
+   } finally {
+     isSaving = false;
+     notifyListeners();
+   }
+ }
+
   Future<void> loadCourses() async {
     isLoading = true;
     error = null;

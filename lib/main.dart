@@ -16,10 +16,14 @@ import 'add_course_page.dart';
 
 
 
+
 Future<void> testCourseService() async {
   try {
-    final service = CourseApiService('https://jsonplaceholder.typicode.com');
-   final courses = await service.getCourses();
+    final service = CourseApiService(
+      'https://course-api-pearl.vercel.app',
+    );
+
+    final courses = await service.getCourses();
     debugPrint('Jumlah course: ${courses.length}');
 
     for (final course in courses) {
@@ -46,7 +50,7 @@ void main() {
           create: (_) => CourseState(
             CourseRepository(
               CourseApiService(
-                'https://jsonplaceholder.typicode.com',
+                'https://course-api-pearl.vercel.app',
               ),
             ),
           ),
@@ -55,7 +59,7 @@ void main() {
           create: (_) => CourseProvider(
             CourseRepository(
               CourseApiService(
-                'https://jsonplaceholder.typicode.com',
+                'https://course-api-pearl.vercel.app',
               ),
             ),
           )..loadCourses(),
@@ -65,6 +69,7 @@ void main() {
     ),
   );
 }
+
 
 
 class CourseExplorerApp extends StatelessWidget {
@@ -1963,7 +1968,6 @@ class DebugDetailPage extends StatelessWidget {
 }
 
  
-
 class CourseProviderView extends StatefulWidget {
   const CourseProviderView({super.key});
 
@@ -1994,8 +1998,74 @@ class _CourseProviderViewState extends State<CourseProviderView> {
 
     if (!mounted) return;
 
-    // Muat ulang daftar setelah halaman edit ditutup.
-    context.read<CourseProvider>().loadCourses();
+    await context.read<CourseProvider>().loadCourses();
+  }
+
+  Future<void> _deleteCourse(Course course) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Hapus Course?'),
+          content: Text(
+            'Apakah kamu yakin ingin menghapus '
+            '"${course.title}"?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted || confirmed != true) return;
+
+    if (course.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Course tidak memiliki ID yang valid.'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await context.read<CourseProvider>().deleteCourse(course.id!);
+
+      if (!mounted) return;
+
+      // Muat ulang daftar setelah penghapusan berhasil.
+      await context.read<CourseProvider>().loadCourses();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Course "${course.title}" berhasil dihapus.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus Course: $e'),
+        ),
+      );
+    }
   }
 
   @override
@@ -2090,6 +2160,16 @@ class _CourseProviderViewState extends State<CourseProviderView> {
                           onPressed: provider.isSaving
                               ? null
                               : () => _editCourse(course),
+                        ),
+                        IconButton(
+                          tooltip: 'Hapus Course',
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                          ),
+                          onPressed: provider.isSaving
+                              ? null
+                              : () => _deleteCourse(course),
                         ),
                       ],
                     ),
