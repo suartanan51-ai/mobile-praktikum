@@ -698,6 +698,7 @@ class _CoursesPageState extends State<CoursesPage> {
     }
   }
   
+
 @override
 Widget build(BuildContext context) {
   return LayoutBuilder(
@@ -715,6 +716,7 @@ Widget build(BuildContext context) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Identitas mahasiswa: nama dan NIM
             ProfileHeader(
               name: widget.student['name'] as String,
               nim: widget.student['nim'] as String,
@@ -737,6 +739,7 @@ Widget build(BuildContext context) {
 
             const SizedBox(height: 16),
 
+            // Judul daftar course
             const Text(
               'Daftar Course',
               style: TextStyle(
@@ -751,6 +754,7 @@ Widget build(BuildContext context) {
 
             const SizedBox(height: 12),
 
+            // Tampilan list untuk layar kecil
             if (isCompact)
               ListView.separated(
                 shrinkWrap: true,
@@ -769,6 +773,7 @@ Widget build(BuildContext context) {
                   );
                 },
               )
+            // Tampilan grid untuk layar lebih besar
             else
               GridView.builder(
                 shrinkWrap: true,
