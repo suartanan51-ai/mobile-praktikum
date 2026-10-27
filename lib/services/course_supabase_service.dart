@@ -11,14 +11,12 @@ class CourseSupabaseService implements CourseDataSource {
   @override
   Future<List<Course>> getCourses() async {
     try {
-      debugPrint('SUPABASE: Mulai mengambil data courses');
+      debugPrint('SUPABASE: Mengambil data courses');
 
       final data = await supabase
           .from('courses')
           .select()
           .order('id');
-
-      debugPrint('SUPABASE: Data diterima = $data');
 
       final courses = (data as List)
           .map(
@@ -34,30 +32,54 @@ class CourseSupabaseService implements CourseDataSource {
 
       return courses;
     } catch (e, stackTrace) {
-      debugPrint('SUPABASE ERROR: $e');
+      debugPrint('SUPABASE ERROR saat mengambil data: $e');
       debugPrintStack(stackTrace: stackTrace);
       rethrow;
     }
   }
 
+  // INSERT: Menambahkan course baru ke Supabase.
   @override
   Future<Course> createCourse(Course course) async {
-    throw UnimplementedError(
-      'Fitur tambah course belum diimplementasikan.',
-    );
+    try {
+      debugPrint('SUPABASE: Menambahkan course ${course.code}');
+
+      final row = await supabase
+          .from('courses')
+          .insert(course.toJson())
+          .select()
+          .single();
+
+      final newCourse = Course.fromJson(
+        Map<String, dynamic>.from(row),
+      );
+
+      debugPrint(
+        'SUPABASE: Course berhasil ditambahkan: '
+        '${newCourse.code} - ${newCourse.title}',
+      );
+
+      return newCourse;
+    } catch (e, stackTrace) {
+      debugPrint('SUPABASE ERROR saat menambah course: $e');
+      debugPrintStack(stackTrace: stackTrace);
+      rethrow;
+    }
   }
 
+  // Belum diimplementasikan pada tahap ini.
   @override
   Future<void> updateCourse(int id, Course course) async {
     throw UnimplementedError(
-      'Fitur ubah course belum diimplementasikan.',
+      'Fitur update course belum diimplementasikan.',
     );
   }
 
+  // Belum diimplementasikan pada tahap ini.
   @override
   Future<void> deleteCourse(int id) async {
     throw UnimplementedError(
-      'Fitur hapus course belum diimplementasikan.',
+      'Fitur delete course belum diimplementasikan.',
     );
   }
 }
