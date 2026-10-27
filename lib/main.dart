@@ -9,13 +9,12 @@ import 'course_state.dart';
 import 'models/course.dart';
 import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
-import 'services/course_service.dart';
+import 'services/course_api_service.dart';
 
 Future<void> testCourseService() async {
   try {
-    final service = CourseService();
-    final courses = await service.loadCourses();
-
+    final service = CourseApiService('https://jsonplaceholder.typicode.com');
+   final courses = await service.getCourses();
     debugPrint('Jumlah course: ${courses.length}');
 
     for (final course in courses) {
@@ -39,12 +38,20 @@ void main() {
       providers: [
         ChangeNotifierProvider<CourseState>(
           create: (_) => CourseState(
-            CourseRepository(CourseService()),
+            CourseRepository(
+              CourseApiService(
+                'https://jsonplaceholder.typicode.com',
+              ),
+            ),
           ),
         ),
         ChangeNotifierProvider<CourseProvider>(
           create: (_) => CourseProvider(
-            CourseRepository(CourseService()),
+            CourseRepository(
+              CourseApiService(
+                'https://jsonplaceholder.typicode.com',
+              ),
+            ),
           ),
         ),
       ],

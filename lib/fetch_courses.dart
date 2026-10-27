@@ -1,6 +1,7 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 const String apiUrl = 'https://jsonplaceholder.typicode.com/posts';
 
@@ -10,7 +11,7 @@ Future<List<dynamic>> fetchCourses() async {
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body) as List<dynamic>;
 
-    print('Jumlah data diterima: ${data.length}');
+    debugPrint('Jumlah data diterima: ${data.length}');
     return data;
   }
 
