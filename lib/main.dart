@@ -12,6 +12,8 @@ import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
 import 'services/course_api_service.dart';
 import 'add_course_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'supabase_config.dart';
 
 
 
@@ -42,7 +44,14 @@ Future<Map<String, dynamic>> loadStudentData() async {
   return jsonDecode(jsonString) as Map<String, dynamic>;
 }
 
-void main() {
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+   url: SupabaseConfig.supabaseUrl,
+   publishableKey: SupabaseConfig.supabasePublishableKey,
+  );
   runApp(
     MultiProvider(
       providers: [
