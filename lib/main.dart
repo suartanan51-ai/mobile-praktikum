@@ -1,20 +1,19 @@
 
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'course_state.dart';
 import 'models/course.dart';
 import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
 import 'services/course_api_service.dart';
+import 'services/course_supabase_service.dart';
 import 'add_course_page.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase_config.dart';
-
 
 
 
@@ -45,16 +44,19 @@ Future<Map<String, dynamic>> loadStudentData() async {
 }
 
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
-   url: SupabaseConfig.supabaseUrl,
-   publishableKey: SupabaseConfig.supabasePublishableKey,
+    url: SupabaseConfig.supabaseUrl,
+    publishableKey: SupabaseConfig.supabasePublishableKey,
   );
+
   runApp(
     MultiProvider(
       providers: [
+        // CourseState tetap menggunakan REST API lama.
         ChangeNotifierProvider<CourseState>(
           create: (_) => CourseState(
             CourseRepository(
@@ -64,12 +66,12 @@ Future<void> main() async {
             ),
           ),
         ),
+
+        // CourseProvider sekarang membaca data dari Supabase.
         ChangeNotifierProvider<CourseProvider>(
           create: (_) => CourseProvider(
             CourseRepository(
-              CourseApiService(
-                'https://course-api-pearl.vercel.app',
-              ),
+              CourseSupabaseService(),
             ),
           )..loadCourses(),
         ),
