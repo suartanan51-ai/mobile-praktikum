@@ -1051,6 +1051,7 @@ class CourseCard extends StatelessWidget {
   }
 }
 
+
 class CourseDetailPage extends StatefulWidget {
   final Map<String, dynamic> course;
   final String name;
@@ -1064,7 +1065,8 @@ class CourseDetailPage extends StatefulWidget {
   });
 
   @override
-  State<CourseDetailPage> createState() => _CourseDetailPageState();
+  State<CourseDetailPage> createState() =>
+      _CourseDetailPageState();
 }
 
 class _CourseDetailPageState extends State<CourseDetailPage> {
@@ -1072,6 +1074,11 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final title = widget.course['title']?.toString() ?? '-';
+    final code = widget.course['code']?.toString() ?? '-';
+    final credits = widget.course['credits']?.toString() ?? '-';
+    final status = widget.course['status']?.toString() ?? '-';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Course Detail'),
@@ -1088,25 +1095,24 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.course['title'] as String,
+                      title,
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 16),
+
                     if (showDetail) ...[
-                      Text(
-                        'Kode: ${widget.course['code']}',
-                      ),
-                      Text(
-                        'SKS: ${widget.course['credits']}',
-                      ),
-                      Text(
-                        'Status: ${widget.course['status']}',
-                      ),
+                      Text('Kode: $code'),
+                      const SizedBox(height: 6),
+                      Text('SKS: $credits'),
+                      const SizedBox(height: 6),
+                      Text('Status: $status'),
                     ],
+
                     const SizedBox(height: 8),
+
                     TextButton.icon(
                       onPressed: () {
                         setState(() {
@@ -1128,7 +1134,9 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                 ),
               ),
             ),
+
             const SizedBox(height: 16),
+
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -1142,29 +1150,33 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
+
+                    const CircleAvatar(
+                      radius: 28,
+                      child: Icon(Icons.person, size: 30),
+                    ),
+
+                    const SizedBox(height: 12),
+
                     Text('Nama: ${widget.name}'),
+                    const SizedBox(height: 6),
                     Text('NIM: ${widget.nim}'),
                   ],
                 ),
               ),
             ),
+
             const SizedBox(height: 24),
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.pop(
-                    context,
-                    true,
-                  );
+                  Navigator.pop(context, true);
                 },
-                icon: const Icon(
-                  Icons.favorite,
-                ),
-                label: const Text(
-                  'Pilih / Favorite',
-                ),
+                icon: const Icon(Icons.favorite),
+                label: const Text('Pilih / Favorite'),
               ),
             ),
           ],
@@ -1173,6 +1185,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
     );
   }
 }
+
 class ProfilePage extends StatelessWidget {
   final Map<String, dynamic> student;
 
@@ -1992,6 +2005,7 @@ class CourseProviderView extends StatefulWidget {
       _CourseProviderViewState();
 }
 
+
 class _CourseProviderViewState extends State<CourseProviderView> {
   @override
   void initState() {
@@ -1999,13 +2013,12 @@ class _CourseProviderViewState extends State<CourseProviderView> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-
       context.read<CourseProvider>().loadCourses();
     });
   }
 
   Future<void> _editCourse(Course course) async {
-    await Navigator.push(
+    final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (context) => AddCoursePage(course: course),
@@ -2014,7 +2027,24 @@ class _CourseProviderViewState extends State<CourseProviderView> {
 
     if (!mounted) return;
 
-    await context.read<CourseProvider>().loadCourses();
+    if (result == true) {
+      await context.read<CourseProvider>().loadCourses();
+    }
+  }
+
+  Future<void> _addCourse() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddCoursePage(),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (result == true) {
+      await context.read<CourseProvider>().loadCourses();
+    }
   }
 
   Future<void> _deleteCourse(Course course) async {
@@ -2029,15 +2059,13 @@ class _CourseProviderViewState extends State<CourseProviderView> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(false),
               child: const Text('Batal'),
             ),
             FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(true);
-              },
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(true),
               child: const Text('Hapus'),
             ),
           ],
@@ -2057,12 +2085,9 @@ class _CourseProviderViewState extends State<CourseProviderView> {
     }
 
     try {
-      await context.read<CourseProvider>().deleteCourse(course.id!);
-
-      if (!mounted) return;
-
-      // Muat ulang daftar setelah penghapusan berhasil.
-      await context.read<CourseProvider>().loadCourses();
+      await context.read<CourseProvider>().deleteCourse(
+            course.id!,
+          );
 
       if (!mounted) return;
 
@@ -2078,7 +2103,7 @@ class _CourseProviderViewState extends State<CourseProviderView> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Gagal menghapus Course: $e'),
+          content: Text('Gagal menghapus course: $e'),
         ),
       );
     }
@@ -2091,108 +2116,156 @@ class _CourseProviderViewState extends State<CourseProviderView> {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Daftar Course'),
+            actions: [
+              IconButton(
+                tooltip: 'Muat ulang',
+                onPressed: provider.isLoading
+                    ? null
+                    : () => provider.loadCourses(),
+                icon: const Icon(Icons.refresh),
+              ),
+            ],
           ),
+
           floatingActionButton: FloatingActionButton.extended(
-            onPressed: provider.isSaving
-                ? null
-                : () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddCoursePage(),
-                      ),
-                    );
-                  },
+            onPressed: provider.isSaving ? null : _addCourse,
             icon: const Icon(Icons.add),
             label: const Text('Tambah Course'),
           ),
-          body: Builder(
-            builder: (context) {
-              if (provider.isLoading) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
 
-              if (provider.error != null) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          size: 40,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Gagal memuat course:\n${provider.error}',
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: provider.loadCourses,
-                          child: const Text('Coba Lagi'),
-                        ),
-                      ],
+          body: Column(
+            children: [
+              // Identitas mahasiswa di atas daftar course.
+              Card(
+                margin: const EdgeInsets.fromLTRB(
+                  16,
+                  12,
+                  16,
+                  8,
+                ),
+                child: const ListTile(
+                  leading: CircleAvatar(
+                    child: Icon(Icons.person),
+                  ),
+                  title: Text(
+                    'I Nengah Suartana',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                );
-              }
-
-              if (provider.courses.isEmpty) {
-                return const Center(
-                  child: Text('Belum ada data course.'),
-                );
-              }
-
-              return ListView.separated(
-                padding: const EdgeInsets.only(
-                  bottom: 90,
-                  top: 8,
+                  subtitle: Text('NIM: 2415051119'),
                 ),
-                itemCount: provider.courses.length,
-                separatorBuilder: (_, _) =>
-                    const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final course = provider.courses[index];
+              ),
 
-                  return ListTile(
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.book_outlined),
-                    ),
-                    title: Text(course.title),
-                    subtitle: Text(
-                      '${course.code} • ${course.credits} SKS',
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(course.status),
-                        IconButton(
-                          tooltip: 'Edit Course',
-                          icon: const Icon(Icons.edit_outlined),
-                          onPressed: provider.isSaving
-                              ? null
-                              : () => _editCourse(course),
-                        ),
-                        IconButton(
-                          tooltip: 'Hapus Course',
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.red,
+              if (provider.isSaving)
+                const LinearProgressIndicator(),
+
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    if (provider.isLoading &&
+                        provider.courses.isEmpty) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (provider.error != null &&
+                        provider.courses.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 40,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Gagal memuat course:\n'
+                                '${provider.error}',
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton.icon(
+                                onPressed: provider.isLoading
+                                    ? null
+                                    : () => provider.loadCourses(),
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Coba Lagi'),
+                              ),
+                            ],
                           ),
-                          onPressed: provider.isSaving
-                              ? null
-                              : () => _deleteCourse(course),
                         ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
+                      );
+                    }
+
+                    if (provider.courses.isEmpty) {
+                      return const Center(
+                        child: Text('Belum ada data course.'),
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: provider.loadCourses,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.only(
+                          bottom: 90,
+                          top: 8,
+                        ),
+                        itemCount: provider.courses.length,
+                        separatorBuilder: (_, _) =>
+                            const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final course =
+                              provider.courses[index];
+
+                          return ListTile(
+                            leading: const CircleAvatar(
+                              child: Icon(
+                                Icons.book_outlined,
+                              ),
+                            ),
+                            title: Text(course.title),
+                            subtitle: Text(
+                              '${course.code} • '
+                              '${course.credits} SKS',
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(course.status),
+                                IconButton(
+                                  tooltip: 'Edit Course',
+                                  icon: const Icon(
+                                    Icons.edit_outlined,
+                                  ),
+                                  onPressed: provider.isSaving
+                                      ? null
+                                      : () => _editCourse(course),
+                                ),
+                                IconButton(
+                                  tooltip: 'Hapus Course',
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: provider.isSaving
+                                      ? null
+                                      : () => _deleteCourse(course),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },

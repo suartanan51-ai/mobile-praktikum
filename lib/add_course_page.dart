@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -81,21 +80,20 @@ class _AddCoursePageState extends State<AddCoursePage> {
         SnackBar(
           content: Text(
             _isEditing
-                ? 'Permintaan update course berhasil'
-                : 'Course berhasil dikirim',
+                ? 'Course berhasil diperbarui'
+                : 'Course berhasil ditambahkan',
           ),
         ),
       );
 
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Gagal menyimpan course: ${provider.error ?? e}',
-          ),
+          content: Text('Gagal menyimpan course: $e'),
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -103,11 +101,14 @@ class _AddCoursePageState extends State<AddCoursePage> {
 
   @override
   Widget build(BuildContext context) {
-    final isSaving = context.watch<CourseProvider>().isSaving;
+    final provider = context.watch<CourseProvider>();
+    final isSaving = provider.isSaving;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Course' : 'Tambah Course'),
+        title: Text(
+          _isEditing ? 'Edit Course' : 'Tambah Course',
+        ),
       ),
       body: Form(
         key: _formKey,
@@ -189,9 +190,7 @@ class _AddCoursePageState extends State<AddCoursePage> {
                   ? null
                   : (value) {
                       if (value != null) {
-                        setState(() {
-                          _status = value;
-                        });
+                        setState(() => _status = value);
                       }
                     },
             ),
@@ -207,7 +206,9 @@ class _AddCoursePageState extends State<AddCoursePage> {
                       ),
                     )
                   : Text(
-                      _isEditing ? 'Simpan Perubahan' : 'Simpan Course',
+                      _isEditing
+                          ? 'Simpan Perubahan'
+                          : 'Simpan Course',
                     ),
             ),
           ],
