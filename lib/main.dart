@@ -11,6 +11,9 @@ import 'models/course.dart';
 import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
 import 'services/course_api_service.dart';
+import 'add_course_page.dart';
+
+
 
 
 Future<void> testCourseService() async {
@@ -90,19 +93,20 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
+
 class _DashboardPageState extends State<DashboardPage> {
   int selectedIndex = 0;
   bool isSubmitting = false;
 
-   @override
- void initState() {
-   super.initState();
+  @override
+  void initState() {
+    super.initState();
 
-   WidgetsBinding.instance.addPostFrameCallback((_) {
-     if (!mounted) return;
-     context.read<CourseState>().loadCourses();
-   });
- }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<CourseState>().loadCourses();
+    });
+  }
 
   final nameController = TextEditingController();
   final nimController = TextEditingController();
@@ -148,15 +152,11 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context, false);
-              },
+              onPressed: () => Navigator.pop(context, false),
               child: const Text('Batal'),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
+              onPressed: () => Navigator.pop(context, true),
               child: const Text('Kirim'),
             ),
           ],
@@ -164,7 +164,7 @@ class _DashboardPageState extends State<DashboardPage> {
       },
     );
 
-    if (confirmed != true) {
+    if (confirmed != true || !mounted) {
       return;
     }
 
@@ -172,9 +172,7 @@ class _DashboardPageState extends State<DashboardPage> {
       isSubmitting = true;
     });
 
-    await Future.delayed(
-      const Duration(seconds: 2),
-    );
+    await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
 
@@ -189,6 +187,29 @@ class _DashboardPageState extends State<DashboardPage> {
     );
 
     commentController.clear();
+  }
+
+  void openCourseApi() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CourseProviderView(),
+      ),
+    );
+  }
+
+  void openDebuggingPage(
+    Map<String, dynamic> student,
+  ) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DebuggingPage(
+          studentName: student['name'] as String,
+          studentId: student['nim'] as String,
+        ),
+      ),
+    );
   }
 
   @override
@@ -242,21 +263,17 @@ class _DashboardPageState extends State<DashboardPage> {
         }
 
         final student =
-            snapshot.data!['student']
-                as Map<String, dynamic>;
+            snapshot.data!['student'] as Map<String, dynamic>;
 
         final courses =
-            snapshot.data!['courses']
-                as List<dynamic>;
+            snapshot.data!['courses'] as List<dynamic>;
 
         if (nameController.text.isEmpty) {
-          nameController.text =
-              student['name'] as String;
+          nameController.text = student['name'] as String;
         }
 
         if (nimController.text.isEmpty) {
-          nimController.text =
-              student['nim'] as String;
+          nimController.text = student['nim'] as String;
         }
 
         if (feedbackNameController.text.isEmpty) {
@@ -289,13 +306,24 @@ class _DashboardPageState extends State<DashboardPage> {
             hobbyController: hobbyController,
             skillController: skillController,
             feedbackFormKey: feedbackFormKey,
-            feedbackNameController:
-                feedbackNameController,
-            feedbackNimController:
-                feedbackNimController,
+            feedbackNameController: feedbackNameController,
+            feedbackNimController: feedbackNimController,
             commentController: commentController,
             submitFeedback: submitFeedback,
             isSubmitting: isSubmitting,
+          ),
+        ];
+
+        final appBarActions = [
+          IconButton(
+            tooltip: 'Course API',
+            onPressed: openCourseApi,
+            icon: const Icon(Icons.cloud_outlined),
+          ),
+          IconButton(
+            tooltip: 'Debugging Challenge',
+            onPressed: () => openDebuggingPage(student),
+            icon: const Icon(Icons.bug_report),
           ),
         ];
 
@@ -305,30 +333,7 @@ class _DashboardPageState extends State<DashboardPage> {
               return Scaffold(
                 appBar: AppBar(
                   title: const Text('Course Explorer'),
-                  actions: [
-                    IconButton(
-                      tooltip: 'Debugging Challenge',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                DebuggingPage(
-                              studentName:
-                                  student['name']
-                                      as String,
-                              studentId:
-                                  student['nim']
-                                      as String,
-                            ),
-                          ),
-                        );
-                      },
-                      icon: const Icon(
-                        Icons.bug_report,
-                      ),
-                    ),
-                  ],
+                  actions: appBarActions,
                 ),
                 body: pages[selectedIndex],
                 bottomNavigationBar: NavigationBar(
@@ -340,30 +345,18 @@ class _DashboardPageState extends State<DashboardPage> {
                   },
                   destinations: const [
                     NavigationDestination(
-                      icon: Icon(
-                        Icons.home_outlined,
-                      ),
-                      selectedIcon: Icon(
-                        Icons.home,
-                      ),
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
                       label: 'Home',
                     ),
                     NavigationDestination(
-                      icon: Icon(
-                        Icons.menu_book_outlined,
-                      ),
-                      selectedIcon: Icon(
-                        Icons.menu_book,
-                      ),
+                      icon: Icon(Icons.menu_book_outlined),
+                      selectedIcon: Icon(Icons.menu_book),
                       label: 'Courses',
                     ),
                     NavigationDestination(
-                      icon: Icon(
-                        Icons.person_outline,
-                      ),
-                      selectedIcon: Icon(
-                        Icons.person,
-                      ),
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
                       label: 'Profile',
                     ),
                   ],
@@ -374,30 +367,7 @@ class _DashboardPageState extends State<DashboardPage> {
             return Scaffold(
               appBar: AppBar(
                 title: const Text('Course Explorer'),
-                actions: [
-                  IconButton(
-                    tooltip: 'Debugging Challenge',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              DebuggingPage(
-                            studentName:
-                                student['name']
-                                    as String,
-                            studentId:
-                                student['nim']
-                                    as String,
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(
-                      Icons.bug_report,
-                    ),
-                  ),
-                ],
+                actions: appBarActions,
               ),
               body: Row(
                 children: [
@@ -408,41 +378,26 @@ class _DashboardPageState extends State<DashboardPage> {
                         selectedIndex = index;
                       });
                     },
-                    labelType:
-                        NavigationRailLabelType.all,
+                    labelType: NavigationRailLabelType.all,
                     destinations: const [
                       NavigationRailDestination(
-                        icon: Icon(
-                          Icons.home_outlined,
-                        ),
-                        selectedIcon: Icon(
-                          Icons.home,
-                        ),
+                        icon: Icon(Icons.home_outlined),
+                        selectedIcon: Icon(Icons.home),
                         label: Text('Home'),
                       ),
                       NavigationRailDestination(
-                        icon: Icon(
-                          Icons.menu_book_outlined,
-                        ),
-                        selectedIcon: Icon(
-                          Icons.menu_book,
-                        ),
+                        icon: Icon(Icons.menu_book_outlined),
+                        selectedIcon: Icon(Icons.menu_book),
                         label: Text('Courses'),
                       ),
                       NavigationRailDestination(
-                        icon: Icon(
-                          Icons.person_outline,
-                        ),
-                        selectedIcon: Icon(
-                          Icons.person,
-                        ),
+                        icon: Icon(Icons.person_outline),
+                        selectedIcon: Icon(Icons.person),
                         label: Text('Profile'),
                       ),
                     ],
                   ),
-                  const VerticalDivider(
-                    width: 1,
-                  ),
+                  const VerticalDivider(width: 1),
                   Expanded(
                     child: pages[selectedIndex],
                   ),
@@ -455,6 +410,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 }
+
 
 class HomePage extends StatelessWidget {
   final Map<String, dynamic> student;
@@ -2006,6 +1962,7 @@ class DebugDetailPage extends StatelessWidget {
   }
 }
 
+ 
 class CourseProviderView extends StatefulWidget {
   const CourseProviderView({super.key});
 
@@ -2030,68 +1987,91 @@ class _CourseProviderViewState extends State<CourseProviderView> {
   Widget build(BuildContext context) {
     return Consumer<CourseProvider>(
       builder: (context, provider, child) {
-        if (provider.isLoading) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Daftar Course'),
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: provider.isSaving
+                ? null
+                : () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const AddCoursePage(),
+                      ),
+                    );
+                  },
+            icon: const Icon(Icons.add),
+            label: const Text('Tambah Course'),
+          ),
+          body: Builder(
+            builder: (context) {
+              if (provider.isLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
 
-        if (provider.error != null) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline, size: 40),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Gagal memuat course:\n${provider.error}',
-                    textAlign: TextAlign.center,
+              if (provider.error != null) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 40,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Gagal memuat course:\n${provider.error}',
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: provider.loadCourses,
+                          child: const Text('Coba Lagi'),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: provider.loadCourses,
-                    child: const Text('Coba Lagi'),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
+                );
+              }
 
-        if (provider.courses.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('Belum ada data course.'),
-            ),
-          );
-        }
+              if (provider.courses.isEmpty) {
+                return const Center(
+                  child: Text('Belum ada data course.'),
+                );
+              }
 
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: provider.courses.length,
-          separatorBuilder: (_, _)  =>
-              const Divider(height: 1),
-          itemBuilder: (context, index) {
-            final course = provider.courses[index];
+              return ListView.separated(
+                padding: const EdgeInsets.only(
+                  bottom: 90,
+                  top: 8,
+                ),
+                itemCount: provider.courses.length,
+                separatorBuilder: (_, _) =>
+                    const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final course = provider.courses[index];
 
-            return ListTile(
-              leading: const CircleAvatar(
-                child: Icon(Icons.book_outlined),
-              ),
-              title: Text(course.title),
-              subtitle: Text(
-                '${course.code} • ${course.credits} SKS',
-              ),
-              trailing: Text(course.status),
-            );
-          },
+                  return ListTile(
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.book_outlined),
+                    ),
+                    title: Text(course.title),
+                    subtitle: Text(
+                      '${course.code} • ${course.credits} SKS',
+                    ),
+                    trailing: Text(course.status),
+                  );
+                },
+              );
+            },
+          ),
         );
       },
     );

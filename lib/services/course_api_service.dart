@@ -10,6 +10,7 @@ class CourseApiService {
 
   final String baseUrl;
 
+  // HTTP GET: Mengambil daftar course.
   Future<List<Course>> getCourses() async {
     final response = await http.get(
       Uri.parse('$baseUrl/posts'),
@@ -27,7 +28,6 @@ class CourseApiService {
     return data.map((e) {
       final json = e as Map<String, dynamic>;
 
-      // Pemetaan JSONPlaceholder ke model Course.
       return Course(
         id: json['id'] as int?,
         code: 'POST${json['id']}',
@@ -36,5 +36,39 @@ class CourseApiService {
         status: 'planned',
       );
     }).toList();
+  }
+
+  // HTTP POST: Membuat course baru.
+  Future<Course> createCourse(Course course) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/posts'),
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+        'code': course.code,
+        'title': course.title,
+        'credits': course.credits,
+        'status': course.status,
+      }),
+    );
+
+    if (response.statusCode != 200 &&
+        response.statusCode != 201) {
+      throw Exception(
+        'Gagal membuat course: HTTP ${response.statusCode}',
+      );
+    }
+
+    final Map<String, dynamic> json =
+        jsonDecode(response.body) as Map<String, dynamic>;
+
+    return Course(
+      id: json['id'] as int?,
+      code: json['code'] as String? ?? course.code,
+      title: json['title'] as String? ?? course.title,
+      credits: json['credits'] as int? ?? course.credits,
+      status: json['status'] as String? ?? course.status,
+    );
   }
 }

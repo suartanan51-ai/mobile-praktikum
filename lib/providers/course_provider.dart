@@ -11,23 +11,47 @@ class CourseProvider extends ChangeNotifier {
 
   List<Course> courses = [];
   bool isLoading = false;
+  bool isSaving = false;
   String? error;
 
+  // Mengambil daftar course.
   Future<void> loadCourses() async {
-    // State loading
     isLoading = true;
     error = null;
     notifyListeners();
 
     try {
-      // Mengambil data course dari repository
       courses = await repository.getCourses();
     } catch (e) {
-      // State error
       error = e.toString();
     } finally {
-      // Mengakhiri loading
       isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Membuat course baru melalui HTTP POST.
+  Future<Course> createCourse(Course course) async {
+    if (isSaving) {
+      throw Exception('Course sedang disimpan.');
+    }
+
+    isSaving = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      final newCourse = await repository.createCourse(course);
+
+      // Muat ulang daftar course setelah POST berhasil.
+      await loadCourses();
+
+      return newCourse;
+    } catch (e) {
+      error = e.toString();
+      rethrow;
+    } finally {
+      isSaving = false;
       notifyListeners();
     }
   }

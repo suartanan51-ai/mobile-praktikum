@@ -7,7 +7,13 @@ class CourseRepository {
 
   CourseRepository(this.service);
 
+  // Mengambil daftar course melalui API service.
   Future<List<Course>> getCourses() async {
     return await service.getCourses();
+  }
+
+  // Membuat course baru melalui API service.
+  Future<Course> createCourse(Course course) async {
+    return await service.createCourse(course);
   }
 }
