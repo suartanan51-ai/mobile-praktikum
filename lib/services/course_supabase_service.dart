@@ -8,7 +8,7 @@ import 'course_data_source.dart';
 class CourseSupabaseService implements CourseDataSource {
   final SupabaseClient supabase = Supabase.instance.client;
 
-  // Mengambil seluruh data course.
+  // GET: Mengambil daftar course.
   @override
   Future<List<Course>> getCourses() async {
     try {
@@ -25,13 +25,13 @@ class CourseSupabaseService implements CourseDataSource {
           )
           .toList();
     } catch (e, stackTrace) {
-      debugPrint('SUPABASE ERROR saat mengambil data: $e');
+      debugPrint('SUPABASE ERROR GET: $e');
       debugPrintStack(stackTrace: stackTrace);
       rethrow;
     }
   }
 
-  // INSERT: Menambahkan course baru.
+  // INSERT: Menambahkan course.
   @override
   Future<Course> createCourse(Course course) async {
     try {
@@ -45,7 +45,7 @@ class CourseSupabaseService implements CourseDataSource {
         Map<String, dynamic>.from(row),
       );
     } catch (e, stackTrace) {
-      debugPrint('SUPABASE ERROR saat menambah course: $e');
+      debugPrint('SUPABASE ERROR INSERT: $e');
       debugPrintStack(stackTrace: stackTrace);
       rethrow;
     }
@@ -60,19 +60,28 @@ class CourseSupabaseService implements CourseDataSource {
           .update(course.toJson())
           .eq('id', id);
 
-      debugPrint('SUPABASE: Course dengan ID $id berhasil diperbarui.');
+      debugPrint('SUPABASE: Course ID $id berhasil diubah.');
     } catch (e, stackTrace) {
-      debugPrint('SUPABASE ERROR saat mengubah course: $e');
+      debugPrint('SUPABASE ERROR UPDATE: $e');
       debugPrintStack(stackTrace: stackTrace);
       rethrow;
     }
   }
 
-  // DELETE: Belum diimplementasikan pada tahap ini.
+  // DELETE: Menghapus course berdasarkan ID.
   @override
   Future<void> deleteCourse(int id) async {
-    throw UnimplementedError(
-      'Fitur delete course belum diimplementasikan.',
-    );
+    try {
+      await supabase
+          .from('courses')
+          .delete()
+          .eq('id', id);
+
+      debugPrint('SUPABASE: Course ID $id berhasil dihapus.');
+    } catch (e, stackTrace) {
+      debugPrint('SUPABASE ERROR DELETE: $e');
+      debugPrintStack(stackTrace: stackTrace);
+      rethrow;
+    }
   }
 }
