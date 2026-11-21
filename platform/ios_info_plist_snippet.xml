@@ -1,0 +1,9 @@
+<!-- Tambahkan di dalam <dict> pada ios/Runner/Info.plist -->
+<key>NSCameraUsageDescription</key>
+<string>Fitur demo memerlukan kamera untuk memotret kamar kos.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Fitur demo memilih foto kamar dari galeri.</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Fitur demo menggunakan lokasi untuk mengisi koordinat.</string>
+<key>NSMotionUsageDescription</key>
+<string>Fitur demo membaca gerakan perangkat untuk belajar sensor.</string>

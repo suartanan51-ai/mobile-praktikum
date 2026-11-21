@@ -1,0 +1,7 @@
+<!-- android/app/src/main/AndroidManifest.xml -->
+<!-- Letakkan dua baris ini langsung di dalam <manifest>, sebelum <application>. -->
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<!-- Permission INTERNET biasanya sudah ada untuk build Flutter yang memerlukan jaringan;
+     pastikan ada jika upload dipakai. -->
+<uses-permission android:name="android.permission.INTERNET" />
